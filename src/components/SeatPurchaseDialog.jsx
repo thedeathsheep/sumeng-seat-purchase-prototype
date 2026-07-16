@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
   CalendarDays,
   Check,
   CheckCircle2,
+  CircleHelp,
   CreditCard,
   LoaderCircle,
   Minus,
@@ -105,22 +107,17 @@ export function SeatPurchaseDialog({ open, plan, currentSeats, onClose, onComple
             <header className="seat-dialog__header">
               <p className="eyebrow">当前套餐：{plan.name}</p>
               <h2 id="seat-dialog-title">加购团队席位</h2>
-              <p>新增席位支付成功后立即生效，本次仅补当前周期剩余费用。</p>
             </header>
 
-            <div className="cycle-strip">
+            <div className="cycle-strip cycle-strip--compact">
               <CalendarDays size={18} />
-              <div>
-                <span>当前计费周期</span>
-                <strong>{CYCLE.start} 至 {CYCLE.end}</strong>
-              </div>
-              <em>剩余 {CYCLE.remainingDays}/{CYCLE.cycleDays} 天</em>
+              <span>本周期至 <strong>{CYCLE.end}</strong>，剩余 <strong>{CYCLE.remainingDays}/{CYCLE.cycleDays}</strong> 天</span>
             </div>
 
-            <div className="seat-selector">
-              <div>
+            <div className="seat-selector seat-selector--compact" aria-label="席位变化">
+              <div className="seat-selector__change">
                 <span>新增席位</span>
-                <small>仅支持增加，当前周期内不可减少</small>
+                <strong>{currentSeats} 席 <ArrowRight size={15} /> {result.newSeatCount} 席</strong>
               </div>
               <div className="stepper" aria-label="新增席位数">
                 <button type="button" onClick={() => setAddedSeats((value) => Math.max(1, value - 1))} disabled={addedSeats === 1} aria-label="减少新增席位"><Minus size={17} /></button>
@@ -129,30 +126,23 @@ export function SeatPurchaseDialog({ open, plan, currentSeats, onClose, onComple
               </div>
             </div>
 
-            <div className="seat-change" aria-label="席位变化">
-              <div><span>当前席位</span><strong>{currentSeats} 席</strong></div>
-              <div className="seat-change__arrow">→</div>
-              <div><span>购买后席位</span><strong>{result.newSeatCount} 席</strong></div>
-            </div>
-
-            <div className="calculation-list">
-              <div><span>每席月价</span><strong>¥{plan.monthly}.00</strong></div>
-              <div><span>剩余周期比例</span><strong>{CYCLE.remainingDays} ÷ {CYCLE.cycleDays}</strong></div>
-              <div><span>下次续费</span><strong>¥{result.renewalAmount}/月</strong></div>
-            </div>
-
-            <div className="charge-summary">
-              <div>
-                <span>本次应付</span>
+            <section className="billing-summary" aria-label="费用明细">
+              <div className="billing-summary__heading">
+                <strong>费用明细</strong>
+                <span className="rounding-help" title="应付金额向下保留 2 位小数；到账积分向上保留 2 位小数">
+                  <CircleHelp size={15} />
+                </span>
+              </div>
+              <div className="billing-summary__formula">
+                <span>¥{plan.monthly}.00 × {addedSeats} 席 × {CYCLE.remainingDays}/{CYCLE.cycleDays}</span>
                 <strong>¥{money(result.payableAmount)}</strong>
-                <small>金额向下保留 2 位小数</small>
               </div>
-              <div>
-                <span><Zap size={15} fill="currentColor" />预计到账积分</span>
-                <strong>{credits(result.grantedCredits)}</strong>
-                <small>积分向上保留 2 位小数</small>
+              <div className="billing-summary__credits">
+                <Zap size={15} fill="currentColor" />
+                <span>支付后到账</span>
+                <strong>{credits(result.grantedCredits)} 积分</strong>
               </div>
-            </div>
+            </section>
 
             <fieldset className="payment-methods">
               <legend>支付方式</legend>
@@ -164,7 +154,10 @@ export function SeatPurchaseDialog({ open, plan, currentSeats, onClose, onComple
               </button>
             </fieldset>
 
-            <p className="seat-dialog__note">新增席位会并入当前订阅，下次续费按新的总席位数计算。</p>
+            <div className="renewal-line">
+              <span>下期按 {result.newSeatCount} 席续费</span>
+              <strong>¥{result.renewalAmount}/月</strong>
+            </div>
 
             <footer className="seat-dialog__footer">
               <button className="button button--secondary" type="button" onClick={onClose} disabled={status === "processing"}>取消</button>
